@@ -41,12 +41,22 @@ final class LoadCryptosUseCaseTest: XCTestCase {
         XCTAssertEqual(repository.requestCount, 1)
     }
     
+    func test_loadMore_requestMore() {
+        let repository = LoadCryptosRepositorySpy()
+        let sut = LoadCryptosUseCase(repository: repository)
+        
+        sut.load()
+        sut.load()
+        
+        XCTAssertEqual(repository.requestCount, 2)
+    }
+    
     // MARK: - Helpers
     final class LoadCryptosRepositorySpy: LoadCryptosRepository {
         private(set) var requestCount: Int = 0
         
         func load() {
-            requestCount = 1
+            requestCount += 1
         }
     }
 }
