@@ -28,7 +28,7 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     func test_initialize_notRequesting() {
         let (_, repository) = makeSUT()
         
-        XCTAssertEqual(repository.requestCount, 0)
+        XCTAssertEqual(repository.messages, [])
     }
     
     func test_load_shouldRequest() {
@@ -36,7 +36,7 @@ final class LoadCryptosUseCaseTest: XCTestCase {
         
         sut.load()
         
-        XCTAssertEqual(repository.requestCount, 1)
+        XCTAssertEqual(repository.messages, [.loaded])
     }
     
     func test_loadMore_requestMore() {
@@ -45,7 +45,7 @@ final class LoadCryptosUseCaseTest: XCTestCase {
         sut.load()
         sut.load()
         
-        XCTAssertEqual(repository.requestCount, 2)
+        XCTAssertEqual(repository.messages, [.loaded, .loaded])
     }
     
     // MARK: - Helpers
@@ -57,10 +57,14 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     }
     
     final class LoadCryptosRepositorySpy: LoadCryptosRepository {
-        private(set) var requestCount: Int = 0
+        private(set) var messages: [Message] = []
         
         func load() {
-            requestCount += 1
+            messages.append(.loaded)
+        }
+        
+        enum Message {
+            case loaded
         }
     }
 }
