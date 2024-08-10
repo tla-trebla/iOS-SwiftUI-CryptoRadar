@@ -69,8 +69,7 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     
     func test_load_returnError() async throws {
         let error = NSError(domain: "Any", code: 0)
-        let repository = LoadCryptosRepositoryStub(result: .failure(error))
-        let sut = LoadCryptosUseCase(repository: repository)
+        let sut = makeSUT(result: .failure(error))
         var capturedError: Error?
         
         do {
@@ -84,10 +83,8 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     }
     
     func test_load_returnCryptos() async throws {
-        let cryptos = [CryptoModel(instType: "SWAP", instID: "LTC-USD-SWAP", last: "9999.99", lastSz: "1", askPx: "9999.99", askSz: "11", bidPx: "8888.88", bidSz: "5", open24H: "9000", high24H: "10000", low24H: "8888.88", volCcy24H: "2222", vol24H: "2222", sodUtc0: "0.1", sodUtc8: "0.1", ts: "1597026383085"),
-                       CryptoModel(instType: "SWAP", instID: "LTC-USD-SWAP", last: "9999.99", lastSz: "1", askPx: "9999.99", askSz: "11", bidPx: "8888.88", bidSz: "5", open24H: "9000", high24H: "10000", low24H: "8888.88", volCcy24H: "2222", vol24H: "2222", sodUtc0: "0.1", sodUtc8: "0.1", ts: "1597026383085")]
-        let repository = LoadCryptosRepositoryStub(result: .success(cryptos))
-        let sut = LoadCryptosUseCase(repository: repository)
+        let cryptos = [anyCryptoModel(), anyCryptoModel()]
+        let sut = makeSUT(result: .success(cryptos))
         var capturedCryptos: [CryptoModel] = []
         
         do {
@@ -100,6 +97,13 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     }
     
     // MARK: - Helpers
+    private func makeSUT(result: Result<[CryptoModel], Error>) -> LoadCryptosUseCase {
+        let repository = LoadCryptosRepositoryStub(result: result)
+        let sut = LoadCryptosUseCase(repository: repository)
+        
+        return sut
+    }
+    
     private func makeSUT() -> (sut: LoadCryptosUseCase, LoadCryptosRepositorySpy) {
         let repository = LoadCryptosRepositorySpy()
         let sut = LoadCryptosUseCase(repository: repository)
@@ -130,5 +134,9 @@ final class LoadCryptosUseCaseTest: XCTestCase {
         enum Message {
             case loaded
         }
+    }
+    
+    private func anyCryptoModel() -> CryptoModel {
+        CryptoModel(instType: "SWAP", instID: "LTC-USD-SWAP", last: "9999.99", lastSz: "1", askPx: "9999.99", askSz: "11", bidPx: "8888.88", bidSz: "5", open24H: "9000", high24H: "10000", low24H: "8888.88", volCcy24H: "2222", vol24H: "2222", sodUtc0: "0.1", sodUtc8: "0.1", ts: "1597026383085")
     }
 }
