@@ -26,15 +26,13 @@ protocol LoadCryptosRepository {
 final class LoadCryptosUseCaseTest: XCTestCase {
 
     func test_initialize_notRequesting() {
-        let repository = LoadCryptosRepositorySpy()
-        let sut = LoadCryptosUseCase(repository: repository)
+        let (_, repository) = makeSUT()
         
         XCTAssertEqual(repository.requestCount, 0)
     }
     
     func test_load_shouldRequest() {
-        let repository = LoadCryptosRepositorySpy()
-        let sut = LoadCryptosUseCase(repository: repository)
+        let (sut, repository) = makeSUT()
         
         sut.load()
         
@@ -42,8 +40,7 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     }
     
     func test_loadMore_requestMore() {
-        let repository = LoadCryptosRepositorySpy()
-        let sut = LoadCryptosUseCase(repository: repository)
+        let (sut, repository) = makeSUT()
         
         sut.load()
         sut.load()
@@ -52,6 +49,13 @@ final class LoadCryptosUseCaseTest: XCTestCase {
     }
     
     // MARK: - Helpers
+    private func makeSUT() -> (sut: LoadCryptosUseCase, LoadCryptosRepositorySpy) {
+        let repository = LoadCryptosRepositorySpy()
+        let sut = LoadCryptosUseCase(repository: repository)
+        
+        return (sut, repository)
+    }
+    
     final class LoadCryptosRepositorySpy: LoadCryptosRepository {
         private(set) var requestCount: Int = 0
         
