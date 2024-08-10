@@ -34,6 +34,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5E1D59362C6777E400530E81 /* Domain */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Domain; path = ../Domain; sourceTree = "<group>"; };
 		5E622FE32C67605B0085666C /* CryptoRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CryptoRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E622FE62C67605B0085666C /* CryptoRadarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoRadarApp.swift; sourceTree = "<group>"; };
 		5E622FE82C67605B0085666C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -74,6 +75,7 @@
 		5E622FDA2C67605B0085666C = {
 			isa = PBXGroup;
 			children = (
+				5E1D59362C6777E400530E81 /* Domain */,
 				5E622FE52C67605B0085666C /* CryptoRadar */,
 				5E622FF62C67605E0085666C /* CryptoRadarTests */,
 				5E6230002C67605E0085666C /* CryptoRadarUITests */,
