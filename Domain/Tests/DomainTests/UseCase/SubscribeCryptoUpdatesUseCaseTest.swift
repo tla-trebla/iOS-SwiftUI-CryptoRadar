@@ -29,7 +29,7 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
         let repository = SubscribeCryptoUpdatesRepositorySpy()
         let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
         
-        XCTAssertEqual(repository.requestCount, 0)
+        XCTAssertEqual(repository.messages, [])
     }
     
     func test_subscribeOnce_requestOnce() async {
@@ -38,7 +38,7 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
         
         _ = try? await sut.subscribe(to: ["BTC", "ETH"])
         
-        XCTAssertEqual(repository.requestCount, 1)
+        XCTAssertEqual(repository.messages, [.subscribe])
     }
     
     func test_subscribeMore_requestMore() async {
@@ -48,16 +48,20 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
         _ = try? await sut.subscribe(to: ["BTC", "ETH"])
         _ = try? await sut.subscribe(to: ["BTC", "ETH"])
         
-        XCTAssertEqual(repository.requestCount, 2)
+        XCTAssertEqual(repository.messages, [.subscribe, .subscribe])
     }
     
     // MARK: - Helper
     final class SubscribeCryptoUpdatesRepositorySpy: SubscribeCryptoUpdatesRepository {
-        private(set) var requestCount: Int = 0
+        private(set) var messages: [Message] = []
         
         func subscribe(to cryptos: [String]) async throws -> [CryptoModel] {
-            requestCount += 1
+            messages.append(.subscribe)
             return [CryptoModel]()
+        }
+        
+        enum Message {
+            case subscribe
         }
     }
 }
