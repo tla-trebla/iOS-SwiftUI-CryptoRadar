@@ -28,15 +28,13 @@ protocol SubscribeCryptoUpdatesRepository {
 
 final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     func test_initialize_notRequesting() {
-        let repository = SubscribeCryptoUpdatesRepositorySpy()
-        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        let (_, repository) = makeSUT()
         
         XCTAssertEqual(repository.messages, [])
     }
     
     func test_subscribeOnce_requestOnce() {
-        let repository = SubscribeCryptoUpdatesRepositorySpy()
-        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        let (sut, repository) = makeSUT()
         
         _ = sut.subscribe(to: ["BTC", "ETH"])
         
@@ -44,8 +42,7 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     }
     
     func test_subscribeMore_requestMore() {
-        let repository = SubscribeCryptoUpdatesRepositorySpy()
-        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        let (sut, repository) = makeSUT()
         
         _ = sut.subscribe(to: ["BTC", "ETH"])
         _ = sut.subscribe(to: ["BTC", "ETH"])
@@ -73,6 +70,13 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     }
     
     // MARK: - Helper
+    private func makeSUT() -> (sut: SubscribeCryptoUpdatesUseCase, SubscribeCryptoUpdatesRepositorySpy) {
+        let repository = SubscribeCryptoUpdatesRepositorySpy()
+        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        
+        return (sut, repository)
+    }
+    
     final class SubscribeCryptoUpdatesRepositoryStub: SubscribeCryptoUpdatesRepository {
         let result: Result<[CryptoModel], Error>
         
