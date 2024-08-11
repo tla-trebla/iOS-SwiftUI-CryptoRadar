@@ -41,12 +41,22 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
         XCTAssertEqual(repository.requestCount, 1)
     }
     
+    func test_subscribeMore_requestMore() async {
+        let repository = SubscribeCryptoUpdatesRepositorySpy()
+        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        
+        _ = try? await sut.subscribe(to: ["BTC", "ETH"])
+        _ = try? await sut.subscribe(to: ["BTC", "ETH"])
+        
+        XCTAssertEqual(repository.requestCount, 2)
+    }
+    
     // MARK: - Helper
     final class SubscribeCryptoUpdatesRepositorySpy: SubscribeCryptoUpdatesRepository {
         private(set) var requestCount: Int = 0
         
         func subscribe(to cryptos: [String]) async throws -> [CryptoModel] {
-            requestCount = 1
+            requestCount += 1
             return [CryptoModel]()
         }
     }
