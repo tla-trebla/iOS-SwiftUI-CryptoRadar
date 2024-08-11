@@ -27,15 +27,13 @@ protocol HTTPClient {
 final class RemoteLoadCryptosRepositoryTest: XCTestCase {
 
     func test_initialize_notRequesting() {
-        let client = HTTPClientSpy()
-        let sut = RemoteLoadCryptosRepository(client: client)
+        let (_, client) = makeSUT()
         
         XCTAssertEqual(client.requestCount, 0)
     }
     
     func test_loadOnce_requestOnce() async {
-        let client = HTTPClientSpy()
-        let sut = RemoteLoadCryptosRepository(client: client)
+        let (sut, client) = makeSUT()
         
         _ = try? await sut.load()
         
@@ -43,8 +41,7 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
     }
     
     func test_loadMore_requestMore() async {
-        let client = HTTPClientSpy()
-        let sut = RemoteLoadCryptosRepository(client: client)
+        let (sut, client) = makeSUT()
         
         _ = try? await sut.load()
         _ = try? await sut.load()
@@ -53,6 +50,13 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
     }
     
     // MARK: - Helpers
+    private func makeSUT() -> (sut: RemoteLoadCryptosRepository, HTTPClientSpy) {
+        let client = HTTPClientSpy()
+        let sut = RemoteLoadCryptosRepository(client: client)
+        
+        return (sut, client)
+    }
+    
     final class HTTPClientSpy: HTTPClient {
         private(set) var requestCount: Int = 0
         
