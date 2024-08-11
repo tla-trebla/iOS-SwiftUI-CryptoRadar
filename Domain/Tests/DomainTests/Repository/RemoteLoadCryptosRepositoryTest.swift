@@ -49,12 +49,40 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
         XCTAssertEqual(client.requestCount, 2)
     }
     
+    func test_load_returnError() async {
+        let error = NSError(domain: "Any", code: 0)
+        let client = HTTPClientStub(result: .failure(error))
+        let sut = RemoteLoadCryptosRepository(client: client)
+        var capturedError: Error?
+        
+        do {
+            _ = try await sut.load()
+            XCTFail("Gets a success, not an error")
+        } catch {
+            capturedError = error
+        }
+        
+        XCTAssertNotNil(capturedError)
+    }
+    
     // MARK: - Helpers
     private func makeSUT() -> (sut: RemoteLoadCryptosRepository, HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteLoadCryptosRepository(client: client)
         
         return (sut, client)
+    }
+    
+    final class HTTPClientStub : HTTPClient {
+        let result: Result<[CryptoModel], Error>
+        
+        init(result: Result<[CryptoModel], Error>) {
+            self.result = result
+        }
+        
+        func load() async throws -> [CryptoModel] {
+            try result.get()
+        }
     }
     
     final class HTTPClientSpy: HTTPClient {
