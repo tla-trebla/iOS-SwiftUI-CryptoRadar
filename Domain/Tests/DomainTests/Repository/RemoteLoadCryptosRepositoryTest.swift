@@ -8,38 +8,6 @@
 import XCTest
 @testable import Domain
 
-final class RemoteLoadCryptosRepository: LoadCryptosRepository {
-    let client: HTTPClient
-    
-    init(client: HTTPClient) {
-        self.client = client
-    }
-    
-    func load() async throws -> [CryptoModel] {
-        let (data, _) = try await client.load()
-        return try decodeData(from: data)
-    }
-    
-    private func decodeData(from data: Data) throws -> [CryptoModel] {
-        do {
-            let response = try JSONDecoder().decode(ApiResponse.self, from: data)
-            return response.data
-        } catch {
-            throw error
-        }
-    }
-}
-
-struct ApiResponse: Decodable {
-    let code: String
-    let msg: String
-    let data: [CryptoModel]
-}
-
-protocol HTTPClient {
-    func load() async throws -> (Data, URLResponse)
-}
-
 final class RemoteLoadCryptosRepositoryTest: XCTestCase {
 
     func test_initialize_notRequesting() {
