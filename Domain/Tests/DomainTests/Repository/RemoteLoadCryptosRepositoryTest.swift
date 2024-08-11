@@ -33,6 +33,15 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
         XCTAssertEqual(client.requestCount, 0)
     }
     
+    func test_loadOnce_requestOnce() async {
+        let client = HTTPClientSpy()
+        let sut = RemoteLoadCryptosRepository(client: client)
+        
+        _ = try? await sut.load()
+        
+        XCTAssertEqual(client.requestCount, 1)
+    }
+    
     // MARK: - Helpers
     final class HTTPClientSpy: HTTPClient {
         private(set) var requestCount: Int = 0
