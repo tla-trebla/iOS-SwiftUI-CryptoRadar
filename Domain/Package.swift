@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Domain",
     platforms: [
-        .iOS(.v15)
+        .iOS(.v13)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -21,6 +21,9 @@ let package = Package(
             name: "Domain"),
         .testTarget(
             name: "DomainTests",
-            dependencies: ["Domain"]),
+            dependencies: ["Domain"],
+            resources: [
+                .copy("Data/GetTickerResponse.json")
+            ]),
     ]
 )

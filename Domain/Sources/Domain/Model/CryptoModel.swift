@@ -7,18 +7,18 @@
 
 struct CryptoModel: Codable, Equatable {
     let instType: String
-    let instID: String
+    let instId: String
     let last: String
     let lastSz: String
     let askPx: String
     let askSz: String
     let bidPx: String
     let bidSz: String
-    let open24H: String
-    let high24H: String
-    let low24H: String
-    let volCcy24H: String
-    let vol24H: String
+    let open24h: String
+    let high24h: String
+    let low24h: String
+    let volCcy24h: String
+    let vol24h: String
     let sodUtc0: String
     let sodUtc8: String
     let ts: String

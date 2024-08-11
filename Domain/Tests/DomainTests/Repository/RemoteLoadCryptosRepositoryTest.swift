@@ -16,12 +16,28 @@ final class RemoteLoadCryptosRepository: LoadCryptosRepository {
     }
     
     func load() async throws -> [CryptoModel] {
-        try await client.load()
+        let (data, _) = try await client.load()
+        return try decodeData(from: data)
+    }
+    
+    private func decodeData(from data: Data) throws -> [CryptoModel] {
+        do {
+            let response = try JSONDecoder().decode(ApiResponse.self, from: data)
+            return response.data
+        } catch {
+            throw error
+        }
     }
 }
 
+struct ApiResponse: Decodable {
+    let code: String
+    let msg: String
+    let data: [CryptoModel]
+}
+
 protocol HTTPClient {
-    func load() async throws -> [CryptoModel]
+    func load() async throws -> (Data, URLResponse)
 }
 
 final class RemoteLoadCryptosRepositoryTest: XCTestCase {
@@ -65,6 +81,24 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
         XCTAssertNotNil(capturedError)
     }
     
+    func test_load_receiveCryptos() async throws {
+        let jsonData = try! JSONFileLoader.load(fileName: "GetTickerResponse")
+        let (data, response) = (jsonData, URLResponse())
+        let decodedResponse = try JSONDecoder().decode(ApiResponse.self, from: data)
+        let decodedData = decodedResponse.data
+        let client = HTTPClientStub(result: .success((data, response)))
+        let sut = RemoteLoadCryptosRepository(client: client)
+        var capturedCryptos: [CryptoModel] = []
+        
+        do {
+            capturedCryptos = try await sut.load()
+        } catch {
+            XCTFail("Gets an error, not a success")
+        }
+        
+        XCTAssertEqual(capturedCryptos, decodedData)
+    }
+    
     // MARK: - Helpers
     private func makeSUT() -> (sut: RemoteLoadCryptosRepository, HTTPClientSpy) {
         let client = HTTPClientSpy()
@@ -74,13 +108,13 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
     }
     
     final class HTTPClientStub : HTTPClient {
-        let result: Result<[CryptoModel], Error>
+        let result: Result<(Data, URLResponse), Error>
         
-        init(result: Result<[CryptoModel], Error>) {
+        init(result: Result<(Data, URLResponse), Error>) {
             self.result = result
         }
         
-        func load() async throws -> [CryptoModel] {
+        func load() async throws -> (Data, URLResponse) {
             try result.get()
         }
     }
@@ -88,10 +122,28 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
     final class HTTPClientSpy: HTTPClient {
         private(set) var requestCount: Int = 0
         
-        func load() async throws -> [CryptoModel] {
+        func load() async throws -> (Data, URLResponse) {
             requestCount += 1
-            return [CryptoModel]()
+            return (Data(), URLResponse())
         }
     }
     
+    private enum JSONFileLoader {
+        static func load(fileName: String) throws -> Data {
+            guard let url = Bundle.module.url(forResource: fileName, withExtension: "json") else {
+                throw JSONFileLoaderError.FileNotFound
+            }
+            
+            do {
+                return try Data(contentsOf: url)
+            } catch {
+                throw JSONFileLoaderError.CannotDecodeFromURL
+            }
+        }
+        
+        enum JSONFileLoaderError: Swift.Error {
+            case CannotDecodeFromURL
+            case FileNotFound
+        }
+    }
 }
