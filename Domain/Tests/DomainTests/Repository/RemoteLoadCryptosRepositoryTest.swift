@@ -75,7 +75,7 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
         return (sut, client)
     }
     
-    final class HTTPClientStub : HTTPClient {
+    final class HTTPClientStub : LoadCryptosHTTPClient {
         let result: Result<(Data, URLResponse), Error>
         
         init(result: Result<(Data, URLResponse), Error>) {
@@ -87,7 +87,7 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
         }
     }
     
-    final class HTTPClientSpy: HTTPClient {
+    final class HTTPClientSpy: LoadCryptosHTTPClient {
         private(set) var requestCount: Int = 0
         
         func load() async throws -> (Data, URLResponse) {

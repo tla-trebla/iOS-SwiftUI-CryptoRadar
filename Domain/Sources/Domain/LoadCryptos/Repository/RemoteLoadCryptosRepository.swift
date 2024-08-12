@@ -8,9 +8,9 @@
 import Foundation
 
 final class RemoteLoadCryptosRepository: LoadCryptosRepository {
-    let client: HTTPClient
+    let client: LoadCryptosHTTPClient
     
-    init(client: HTTPClient) {
+    init(client: LoadCryptosHTTPClient) {
         self.client = client
     }
     
