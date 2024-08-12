@@ -41,12 +41,22 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
         XCTAssertEqual(client.requestCount, 0)
     }
     
+    func test_subscribeOnce_requestOnce() {
+        let client = SubscribeCryptoUpdatesHTTPClientSpy()
+        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        
+        _ = sut.subscribe(to: ["BTC", "ETH"])
+        
+        XCTAssertEqual(client.requestCount, 1)
+    }
+    
     // MARK: - Helper
     final class SubscribeCryptoUpdatesHTTPClientSpy: SubscribeCryptoUpdatesHTTPClient {
-        let requestCount: Int = 0
+        private(set) var requestCount: Int = 0
         
         func subscribe(to cryptos: [String]) async throws -> (Data, URLResponse) {
-            (Data(), URLResponse())
+            requestCount = 1
+            return (Data(), URLResponse())
         }
     }
 }
