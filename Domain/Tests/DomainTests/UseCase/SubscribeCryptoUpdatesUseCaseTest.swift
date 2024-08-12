@@ -69,6 +69,25 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
         XCTAssertNotNil(capturedError)
     }
     
+    func test_subscribe_getsTheUpdate() async {
+        let cryptos: [CryptoModel] = [anyCryptoModel(), anyCryptoModel()]
+        let repository = SubscribeCryptoUpdatesRepositoryStub(result: .success(cryptos))
+        let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
+        var capturedCryptos: [CryptoModel] = []
+        
+        let stream = sut.subscribe(to: ["BTC", "ETH"])
+        
+        do {
+            for try await models in stream {
+                capturedCryptos = models
+            }
+        } catch {
+            XCTFail("Gets an error, not a success")
+        }
+        
+        XCTAssertEqual(capturedCryptos, cryptos)
+    }
+    
     // MARK: - Helper
     private func makeSUT() -> (sut: SubscribeCryptoUpdatesUseCase, SubscribeCryptoUpdatesRepositorySpy) {
         let repository = SubscribeCryptoUpdatesRepositorySpy()
