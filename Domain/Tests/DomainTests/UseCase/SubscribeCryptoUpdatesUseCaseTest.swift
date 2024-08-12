@@ -8,24 +8,6 @@
 import XCTest
 @testable import Domain
 
-final class SubscribeCryptoUpdatesUseCase {
-    let repository: SubscribeCryptoUpdatesRepository
-    
-    init(repository: SubscribeCryptoUpdatesRepository) {
-        self.repository = repository
-    }
-    
-    func subscribe(to cryptos: [String]) -> AsyncThrowingStream<[CryptoModel], Error> {
-        let stream = repository.subscribe(to: cryptos)
-        
-        return stream
-    }
-}
-
-protocol SubscribeCryptoUpdatesRepository {
-    func subscribe(to cryptos: [String]) -> AsyncThrowingStream<[CryptoModel], Error>
-}
-
 final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     func test_initialize_notRequesting() {
         let (_, repository) = makeSUT()
