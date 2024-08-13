@@ -34,7 +34,7 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     func test_initialize_notRequesting() {
         let (_, client) = makeSUT()
         
-        XCTAssertEqual(client.requestCount, 0)
+        XCTAssertEqual(client.messages, [])
     }
     
     func test_subscribeOnce_requestOnce() {
@@ -42,7 +42,7 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
         
         _ = sut.subscribe(to: ["BTC", "ETH"])
         
-        XCTAssertEqual(client.requestCount, 1)
+        XCTAssertEqual(client.messages, [.subscribe])
     }
     
     func test_subscribeMore_requestMore() {
@@ -51,7 +51,7 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
         _ = sut.subscribe(to: ["BTC", "ETH"])
         _ = sut.subscribe(to: ["BTC", "ETH"])
         
-        XCTAssertEqual(client.requestCount, 2)
+        XCTAssertEqual(client.messages, [.subscribe, .subscribe])
     }
     
     // MARK: - Helper
@@ -63,11 +63,15 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     }
     
     final class SubscribeCryptoUpdatesHTTPClientSpy: SubscribeCryptoUpdatesHTTPClient {
-        private(set) var requestCount: Int = 0
+        private(set) var messages: [Message] = []
         
         func subscribe(to cryptos: [String]) -> AsyncThrowingStream<(Data, URLResponse), Error> {
-            requestCount += 1
+            messages.append(.subscribe)
             return AsyncThrowingStream { _ in }
+        }
+        
+        enum Message {
+            case subscribe
         }
     }
 }
