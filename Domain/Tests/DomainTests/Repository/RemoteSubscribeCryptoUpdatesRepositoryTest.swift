@@ -67,7 +67,10 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     
     func test_subscribe_receiveError() async {
         let error = NSError(domain: "Any", code: 0)
-        let client = SubscribeCryptoUpdatesHTTPClientStub(result: .failure(error))
+        let injectedStream = AsyncThrowingStream<(Data, URLResponse), Error> { continuation in
+            continuation.finish(throwing: error)
+        }
+        let client = SubscribeCryptoUpdatesHTTPClientStub(stream: injectedStream)
         let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
         var capturedError: Error?
         
@@ -93,22 +96,14 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     }
     
     final class SubscribeCryptoUpdatesHTTPClientStub: SubscribeCryptoUpdatesHTTPClient {
-        let result: Result<(Data, URLResponse), Error>
+        let stream: AsyncThrowingStream<(Data, URLResponse), Error>
         
-        init(result: Result<(Data, URLResponse), Error>) {
-            self.result = result
+        init(stream: AsyncThrowingStream<(Data, URLResponse), Error>) {
+            self.stream = stream
         }
         
         func subscribe(to cryptos: [String]) -> AsyncThrowingStream<(Data, URLResponse), any Error> {
-            AsyncThrowingStream { continuation in
-                switch result {
-                case .success(let success):
-                    continuation.yield(success)
-                    continuation.finish()
-                case .failure(let failure):
-                    continuation.finish(throwing: failure)
-                }
-            }
+            stream
         }
     }
     
