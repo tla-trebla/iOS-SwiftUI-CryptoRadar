@@ -21,7 +21,18 @@ final class RemoteSubscribeCryptoUpdatesRepository: SubscribeCryptoUpdatesReposi
     }
     
     private func translateData(from stream: AsyncThrowingStream<(Data, URLResponse), Error>) -> AsyncThrowingStream<[CryptoModel], Error> {
-        AsyncThrowingStream { _ in }
+        AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    for try await (data, response) in stream {
+                        // TODO: Do it on the next test case
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
     }
 }
 
@@ -54,12 +65,51 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
         XCTAssertEqual(client.messages, [.subscribe, .subscribe])
     }
     
+    func test_subscribe_receiveError() async {
+        let error = NSError(domain: "Any", code: 0)
+        let client = SubscribeCryptoUpdatesHTTPClientStub(result: .failure(error))
+        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        var capturedError: Error?
+        
+        let stream = sut.subscribe(to: ["BTC", "ETH"])
+        
+        do {
+            for try await _ in stream {
+                XCTFail("Received a success, not an error")
+            }
+        } catch {
+             capturedError = error
+        }
+        
+        XCTAssertNotNil(capturedError)
+    }
+    
     // MARK: - Helper
     private func makeSUT() -> (sut: RemoteSubscribeCryptoUpdatesRepository, SubscribeCryptoUpdatesHTTPClientSpy) {
         let client = SubscribeCryptoUpdatesHTTPClientSpy()
         let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
         
         return (sut, client)
+    }
+    
+    final class SubscribeCryptoUpdatesHTTPClientStub: SubscribeCryptoUpdatesHTTPClient {
+        let result: Result<(Data, URLResponse), Error>
+        
+        init(result: Result<(Data, URLResponse), Error>) {
+            self.result = result
+        }
+        
+        func subscribe(to cryptos: [String]) -> AsyncThrowingStream<(Data, URLResponse), any Error> {
+            AsyncThrowingStream { continuation in
+                switch result {
+                case .success(let success):
+                    continuation.yield(success)
+                    continuation.finish()
+                case .failure(let failure):
+                    continuation.finish(throwing: failure)
+                }
+            }
+        }
     }
     
     final class SubscribeCryptoUpdatesHTTPClientSpy: SubscribeCryptoUpdatesHTTPClient {
