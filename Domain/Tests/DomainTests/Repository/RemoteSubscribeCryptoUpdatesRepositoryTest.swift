@@ -32,15 +32,13 @@ protocol SubscribeCryptoUpdatesHTTPClient {
 final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
 
     func test_initialize_notRequesting() {
-        let client = SubscribeCryptoUpdatesHTTPClientSpy()
-        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        let (_, client) = makeSUT()
         
         XCTAssertEqual(client.requestCount, 0)
     }
     
     func test_subscribeOnce_requestOnce() {
-        let client = SubscribeCryptoUpdatesHTTPClientSpy()
-        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        let (sut, client) = makeSUT()
         
         _ = sut.subscribe(to: ["BTC", "ETH"])
         
@@ -48,8 +46,7 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     }
     
     func test_subscribeMore_requestMore() {
-        let client = SubscribeCryptoUpdatesHTTPClientSpy()
-        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        let (sut, client) = makeSUT()
         
         _ = sut.subscribe(to: ["BTC", "ETH"])
         _ = sut.subscribe(to: ["BTC", "ETH"])
@@ -58,6 +55,13 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
     }
     
     // MARK: - Helper
+    private func makeSUT() -> (sut: RemoteSubscribeCryptoUpdatesRepository, SubscribeCryptoUpdatesHTTPClientSpy) {
+        let client = SubscribeCryptoUpdatesHTTPClientSpy()
+        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        
+        return (sut, client)
+    }
+    
     final class SubscribeCryptoUpdatesHTTPClientSpy: SubscribeCryptoUpdatesHTTPClient {
         private(set) var requestCount: Int = 0
         
