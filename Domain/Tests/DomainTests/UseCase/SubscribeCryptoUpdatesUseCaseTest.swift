@@ -34,7 +34,10 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     
     func test_subscribe_getsAnError() async {
         let error = NSError(domain: "Any", code: 0)
-        let repository = SubscribeCryptoUpdatesRepositoryStub(result: .failure(error))
+        let injectedStream = AsyncThrowingStream<[CryptoModel], Error> { continuation in
+            continuation.finish(throwing: error)
+        }
+        let repository = SubscribeCryptoUpdatesRepositoryStub(stream: injectedStream)
         let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
         var capturedError: Error?
         
@@ -53,7 +56,11 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     
     func test_subscribe_getsTheUpdate() async {
         let cryptos: [CryptoModel] = [anyCryptoModel(), anyCryptoModel()]
-        let repository = SubscribeCryptoUpdatesRepositoryStub(result: .success(cryptos))
+        let injectedStream = AsyncThrowingStream<[CryptoModel], Error> { continuation in
+            continuation.yield(cryptos)
+            continuation.finish()
+        }
+        let repository = SubscribeCryptoUpdatesRepositoryStub(stream: injectedStream)
         let sut = SubscribeCryptoUpdatesUseCase(repository: repository)
         var capturedCryptos: [CryptoModel] = []
         
@@ -79,22 +86,14 @@ final class SubscribeCryptoUpdatesUseCaseTest: XCTestCase {
     }
     
     final class SubscribeCryptoUpdatesRepositoryStub: SubscribeCryptoUpdatesRepository {
-        let result: Result<[CryptoModel], Error>
+        let stream: AsyncThrowingStream<[CryptoModel], Error>
         
-        init(result: Result<[CryptoModel], Error>) {
-            self.result = result
+        init(stream: AsyncThrowingStream<[CryptoModel], Error>) {
+            self.stream = stream
         }
         
         func subscribe(to cryptos: [String]) -> AsyncThrowingStream<[CryptoModel], any Error> {
-            AsyncThrowingStream { continuation in
-                switch result {
-                case .success(let models):
-                    continuation.yield(models)
-                    continuation.finish()
-                case .failure(let failure):
-                    continuation.finish(throwing: failure)
-                }
-            }
+            stream
         }
     }
     
