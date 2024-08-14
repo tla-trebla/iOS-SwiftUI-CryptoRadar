@@ -5,7 +5,7 @@
 //  Created by Albert Pangestu on 11/08/24.
 //
 
-struct CryptoModel: Decodable, Equatable {
+public struct CryptoModel: Decodable, Equatable {
     let instType: String
     let instId: String
     let last: String
