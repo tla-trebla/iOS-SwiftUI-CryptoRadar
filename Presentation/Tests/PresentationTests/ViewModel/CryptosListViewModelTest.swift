@@ -29,24 +29,26 @@ protocol SubscribeCryptoUpdatesUseCaseProtocol {
 final class CryptosListViewModelTest: XCTestCase {
 
     func test_init_notLoading() {
-        let loadUseCase = LoadCryptosUseCaseSpy()
-        let subscribeUseCase = SubscribeCryptoUpdatesUseCaseSpy()
-        let sut = CryptosListViewModel(loadUseCase: loadUseCase,
-                                       subscribeUseCase: subscribeUseCase)
+        let (_, loadUseCase, _) = makeSUT()
         
         XCTAssertEqual(loadUseCase.requestCount, 0)
     }
     
     func test_init_notListening() {
-        let loadUseCase = LoadCryptosUseCaseSpy()
-        let subscribeUseCase = SubscribeCryptoUpdatesUseCaseSpy()
-        let sut = CryptosListViewModel(loadUseCase: loadUseCase,
-                                       subscribeUseCase: subscribeUseCase)
+        let (_, _, subscribeUseCase) = makeSUT()
         
         XCTAssertEqual(subscribeUseCase.subscribeCount, 0)
     }
     
     // MARK: - Helper
+    private func makeSUT() -> (sut: CryptosListViewModel, load: LoadCryptosUseCaseSpy, subscribe: SubscribeCryptoUpdatesUseCaseSpy) {
+        let loadUseCase = LoadCryptosUseCaseSpy()
+        let subscribeUseCase = SubscribeCryptoUpdatesUseCaseSpy()
+        let sut = CryptosListViewModel(loadUseCase: loadUseCase, subscribeUseCase: subscribeUseCase)
+        
+        return (sut, loadUseCase, subscribeUseCase)
+    }
+    
     final class LoadCryptosUseCaseSpy: LoadCryptosUseCaseProtocol {
         let requestCount: Int = 0
         
