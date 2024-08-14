@@ -25,7 +25,7 @@ final class RemoteSubscribeCryptoUpdatesRepository: SubscribeCryptoUpdatesReposi
             Task {
                 do {
                     for try await (data, response) in stream {
-                        // TODO: Do it on the next test case
+                        continuation.yield(try decodeData(from: data))
                     }
                     continuation.finish()
                 } catch {
@@ -34,6 +34,25 @@ final class RemoteSubscribeCryptoUpdatesRepository: SubscribeCryptoUpdatesReposi
             }
         }
     }
+    
+    private func decodeData(from data: Data) throws -> [CryptoModel] {
+        do {
+            let response = try JSONDecoder().decode(SubscribeResponse.self, from: data)
+            return response.data
+        } catch {
+            throw error
+        }
+    }
+}
+
+struct SubscribeResponse: Decodable {
+    let arg: SubscribedChannels
+    let data: [CryptoModel]
+}
+
+struct SubscribedChannels: Decodable {
+    let channel: String
+    let instId: String
 }
 
 protocol SubscribeCryptoUpdatesHTTPClient {
@@ -87,7 +106,42 @@ final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
         XCTAssertNotNil(capturedError)
     }
     
+    func test_subscribe_receiveUpdates() async {
+        let jsonData = try! JSONFileLoader.load(fileName: "WSTickerResponse")
+        let (data, response) = (jsonData, URLResponse())
+        var updates = [CryptoModel]()
+        let injectedStream = AsyncThrowingStream<(Data, URLResponse), Error> { continuation in
+            updates = try! decodeData(from: data)
+            continuation.yield((data, response))
+            continuation.finish()
+        }
+        let client = SubscribeCryptoUpdatesHTTPClientStub(stream: injectedStream)
+        let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)
+        var capturedUpdates = [CryptoModel]()
+        
+        let stream = sut.subscribe(to: ["BTC", "ETH"])
+        
+        do {
+            for try await models in stream {
+                capturedUpdates = models
+            }
+        } catch {
+            XCTFail("Received an error, not a success")
+        }
+        
+        XCTAssertEqual(capturedUpdates, updates)
+    }
+    
     // MARK: - Helper
+    private func decodeData(from data: Data) throws -> [CryptoModel] {
+        do {
+            let response = try JSONDecoder().decode(SubscribeResponse.self, from: data)
+            return response.data
+        } catch {
+            throw error
+        }
+    }
+    
     private func makeSUT() -> (sut: RemoteSubscribeCryptoUpdatesRepository, SubscribeCryptoUpdatesHTTPClientSpy) {
         let client = SubscribeCryptoUpdatesHTTPClientSpy()
         let sut = RemoteSubscribeCryptoUpdatesRepository(client: client)

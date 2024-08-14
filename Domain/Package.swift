@@ -23,7 +23,8 @@ let package = Package(
             name: "DomainTests",
             dependencies: ["Domain"],
             resources: [
-                .copy("Data/GetTickerResponse.json")
+                .copy("Data/GetTickerResponse.json"),
+                .copy("Data/WSTickerResponse.json")
             ]),
     ]
 )

@@ -95,23 +95,4 @@ final class RemoteLoadCryptosRepositoryTest: XCTestCase {
             return (Data(), URLResponse())
         }
     }
-    
-    private enum JSONFileLoader {
-        static func load(fileName: String) throws -> Data {
-            guard let url = Bundle.module.url(forResource: fileName, withExtension: "json") else {
-                throw JSONFileLoaderError.FileNotFound
-            }
-            
-            do {
-                return try Data(contentsOf: url)
-            } catch {
-                throw JSONFileLoaderError.CannotDecodeFromURL
-            }
-        }
-        
-        enum JSONFileLoaderError: Swift.Error {
-            case CannotDecodeFromURL
-            case FileNotFound
-        }
-    }
 }
