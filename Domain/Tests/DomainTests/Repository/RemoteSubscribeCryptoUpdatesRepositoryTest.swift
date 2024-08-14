@@ -8,57 +8,6 @@
 import XCTest
 @testable import Domain
 
-final class RemoteSubscribeCryptoUpdatesRepository: SubscribeCryptoUpdatesRepository {
-    let client: SubscribeCryptoUpdatesHTTPClient
-    
-    init(client: SubscribeCryptoUpdatesHTTPClient) {
-        self.client = client
-    }
-    
-    func subscribe(to cryptos: [String]) -> AsyncThrowingStream<[CryptoModel], any Error> {
-        let stream = client.subscribe(to: cryptos)
-        return translateData(from: stream)
-    }
-    
-    private func translateData(from stream: AsyncThrowingStream<(Data, URLResponse), Error>) -> AsyncThrowingStream<[CryptoModel], Error> {
-        AsyncThrowingStream { continuation in
-            Task {
-                do {
-                    for try await (data, response) in stream {
-                        continuation.yield(try decodeData(from: data))
-                    }
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
-    }
-    
-    private func decodeData(from data: Data) throws -> [CryptoModel] {
-        do {
-            let response = try JSONDecoder().decode(SubscribeResponse.self, from: data)
-            return response.data
-        } catch {
-            throw error
-        }
-    }
-}
-
-struct SubscribeResponse: Decodable {
-    let arg: SubscribedChannels
-    let data: [CryptoModel]
-}
-
-struct SubscribedChannels: Decodable {
-    let channel: String
-    let instId: String
-}
-
-protocol SubscribeCryptoUpdatesHTTPClient {
-    func subscribe(to cryptos: [String]) -> AsyncThrowingStream<(Data, URLResponse), Error>
-}
-
 final class RemoteSubscribeCryptoUpdatesRepositoryTest: XCTestCase {
 
     func test_initialize_notRequesting() {
